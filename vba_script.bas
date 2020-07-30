@@ -1,90 +1,95 @@
 Attribute VB_Name = "Module2"
-Sub Dosomething()
-    Dim xSh As Worksheet
-    Application.ScreenUpdating = False
-    For Each xSh In Worksheets
-        xSh.Select
-        Call RunCode
-    Next
-    Application.ScreenUpdating = True
-End Sub
+Sub multi_stock_data()
+    
+Dim ws As Worksheet
+for each ws in Worksheet
 
-Sub RunCode()
+  ' Label columm headers
+  ws.Range("I1").Value = "Ticker"
+  ws.Range("J1").Value = "Yearly Change"
+  ws.Range("K1").Value = "Percent Change"
+  ws.Range("L1").Value = "Total Stock Volume"
 
-  ' Set a variable for the stock ticker
+  ' Declare variables and set default values
   Dim stock_ticker As String
-
-  ' Keep track of each stock ticker
-  Dim Ticker_Row As Double
-  Ticker_Row = 2
-
-  ' Keep track of the total stock in the summary
-  Dim summary_table_row As Integer
+  Dim last_row_a as long
+  Dim last_row_k as long
+  Dim stock_volume As Double
+  stock_volume = 0
+  Dim summary_table_row As long
   summary_table_row = 2
-  
-  ' Keep track of the yearly change for each stock
-  ' Dim yearly_change As Integer
-  ' open_price = Cells(i, 3).Value
-  ' close_price = Cells(i, 6).Value
-  
-  ' Keep track of the percent change for each stock
-  Dim per_change As Integer
-  
-    ' Loop through all stock tickers
-  For i = 2 To 797711
+  Dim open_price as Double
+  Dim close_price as Double
+  Dim yearly_change As Double
+  Dim per_change As Double
+  Dim previous_amount as long
+  previous_amount = 2
 
-    ' Check if still within the same stock, if not...
-    If Cells(i + 1, 1).Value <> Cells(i, 1).Value Then
+  ' Determine value of the last row
+  last_row_a = ws.Cells(Rows.Count, 1).End(x1Up).Row
 
-        ' Show each stock ticker
-        stock_ticker = Cells(i, 1).Value
-        
-        ' ' Show change from opening price to closing price for given year
-        ' yearly_change = (open_price - close_price)
-        
-        ' ' Show percent change from opening price to closing price for a given year
-        ' per_change = ((open_price - close_price) / close_price) * 100
+  ' Loop through the rows
+  for i = 2 to last_row_a
 
-        ' Add the stock total volume for each stock
-        stock_total = stock_total + Cells(i, 7).Value
+  ' Add the stock total volume for each stock
+  stock_volume = stock_volume + ws.Cells(i, 7).Value
+
+  ' Check if still within the same stock, if not...
+    If ws.Cells(i + 1, 1).Value <> ws.Cells(i, 1).Value Then
+      
+      ' Show each stock ticker
+        stock_ticker = ws.Cells(i, 1).Value
 
         ' List the stock ticker in Column I
-        Range("I" & summary_table_row).Value = stock_ticker
-
-        ' ' List the yearly change in Column J
-        ' Range("J" & summary_table_row).Value = yearly_change
+        ws.Range("I" & summary_table_row).Value = stock_ticker
         
-        ' ' Show percent change in Column K
-        ' Range("K" & summary_table_row).Value = per_change
-
         ' Show total volume per stock in Column L
-        Range("L" & summary_table_row).Value = stock_total
+        ws.Range("L" & summary_table_row).Value = stock_volume
+        
+        ' Reset the total volume per stock
+        stock_volume = 0
+        
+        ' Show change from opening price to closing price for given year in Column J & adjust formatting
+        open_price = ws. Range("C" & previous_amount)
+        close_price = ws. Range("F" & i)
+
+        yearly_change = close_price - open_price
+        ws.Range("J" & summary_table_row).Value = yearly_change
+        ws.Range("J" & summary_table_row).NumberFormat = "$0.00"
+
+        ' Keep track of the yearly change for each stock
+        if open_price = 0 Then
+          per_change = 0
+
+        else
+        yearly_open = ws.Range("C" & previous_amount)
+        per_change = yearly_change / open_price
+
+        end if
+
+        ' Show percent change in Column K & adjust formatting
+        ws.Range("K" & summary_table_row).Value = per_change
+        ws.Range("K" & summary_table_row).NumberFormat = "0.00%"
+
+        ' Conditional formmating = green for positive, red for negative
+        if ws.Range("J" & summary_table_row).value >= 0 Then
+          ws.Range("J" & summary_table_row).Interior.ColorIndex = 4
+        
+        else
+          ws.Range("J" & summary_table_row).Interior.ColorIndex = 3
+      
+        end if
 
         ' Add one to the ticker row
         summary_table_row = summary_table_row + 1
 
-        ' Reset the total volume per stock
-        stock_total = 0
-        ' yearly_change = 0
-        ' per_change = 0
-
-        ' If the cell immediately following a row is the same brand...
-    Else
-
-      ' Add to the Brand Total
-      stock_total = stock_total + Cells(i, 7).Value
-
-        ' If per_change > 0 Then
-        '     Cells(i, 10).Interior.ColorIndex = 33
-        
-        ' Else
-        '     Cells(i, 10).Interior.ColorIndex = 36
-        
-        ' End If
-  
     End If
 
-  Next i
+    ' Go to next row
+    Next i
+
+  ' Got to next worksheet
+  Next ws
 
 End Sub
 
